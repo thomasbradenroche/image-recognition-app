@@ -12,7 +12,6 @@ app.use(express.json());
 const mongodbConnection =
   process.env.MONGODB_URI || "mongodb://localhost:27017";
 
-console.log("mongodbConnection: ", mongodbConnection);
 // MongoDB connection setup (replace 'your_db_url' with your actual MongoDB URL)
 mongoose.connect(mongodbConnection, {
   useNewUrlParser: true,
@@ -57,12 +56,10 @@ app.post("/upload", upload.single("image"), async (req, res) => {
   const { originalname, buffer } = req.file;
   const imageUrl = `data:image/png;base64,${buffer.toString("base64")}`;
 
-  console.log("image url: ", imageUrl);
-
   const newImage = new Image({
     _id: new mongoose.Types.ObjectId(),
     name: originalname,
-    imageURL: imageUrl,
+    imageUrl: imageUrl,
     prediction: "AI/ML prediction goes here",
   });
 

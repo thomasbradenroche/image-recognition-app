@@ -1,4 +1,11 @@
 import React, { useState } from "react";
+// Import necessary styles (add this line at the top of your file)
+import "react-toastify/dist/ReactToastify.css";
+
+// Import the necessary components
+import { ToastContainer } from "react-toastify";
+// Import the necessary components
+import { toast } from "react-toastify";
 import {
   Button,
   Container,
@@ -7,22 +14,27 @@ import {
   Paper,
   Input,
 } from "@mui/material";
+import { useDropzone } from "react-dropzone";
 import axios from "axios";
 
 function App() {
   const [selectedFile, setSelectedFile] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [images, setImages] = useState([]); // [{ name: "image1.jpg", url: "http://localhost:5000/uploads/image1.jpg" }
 
   const getImages = async () => {
+    const getURL = process.env.APIGET_URL || "http://localhost:5000/image-data";
     try {
-      const response = await axios.get("http://localhost:5000/image-data");
+      const response = await axios.get(getURL);
       setImages(response.data);
-      alert("Images retrieved successfully");
     } catch (error) {
       console.error("Error: ", error);
       setImages([]);
-      alert("Error retrieving images");
     }
+  };
+
+  const onDrop = (acceptedFiles) => {
+    setFile(acceptedFiles[0]);
   };
 
   const handleFileChange = (event) => {
@@ -34,17 +46,19 @@ function App() {
       const formData = new FormData();
       formData.append("image", selectedFile);
 
-      console.log("formData: ", formData);
+      const postURL = process.env.APIPOST_URL || "http://localhost:5000/upload";
 
       try {
-        await axios.post("http://localhost:5000/upload", formData);
-        alert("Image uploaded successfully");
+        setLoading(true);
+        await axios.post(postURL, formData);
+        setLoading(false);
+        toast.success("Image uploaded successfully");
       } catch (error) {
         console.error("Error uploading image:", error);
-        alert("Error uploading image");
+        toast.error("Error uploading image");
       }
     } else {
-      alert("Please select an image to upload");
+      toast.warn("Please select an image to upload");
     }
   };
 
@@ -58,7 +72,6 @@ function App() {
     >
       <Grid
         container
-        spacing={0}
         direction="column"
         alignItems="center"
         justifyContent="center"
@@ -74,12 +87,13 @@ function App() {
             {/* Your centered block content */}
             <Grid style={{ marginBottom: "10px" }}>
               <Typography variant="h2">Image Library</Typography>
-              <Button onClick={getImages}>Get Images</Button>
-              <Button onClick={() => setImages([])}>Clear Images</Button>
+              <Typography variant="h6">
+                Upload a photo and it will guess what it is
+              </Typography>
             </Grid>
 
-            <Grid container style={{ background: "rgba(255, 255, 255, 0.9)" }}>
-              <Grid item style={{ background: "rgba(255, 255, 255, 0.9)" }}>
+            <Grid container>
+              <Grid item>
                 <Paper style={{ padding: "20px" }}>
                   {/* Content for Column 1 */}
                   <Input
@@ -93,25 +107,21 @@ function App() {
                 </Paper>
               </Grid>
             </Grid>
-
-            {/*List out all the images in a grid with name and imageURL */}
-            <Grid style={{ marginTop: "50px" }}>
-              <Typography variant="h6">Images</Typography>
-              {images.map((image) => (
-                <div key={image._id}>
-                  <h2>{image.name}</h2>
-                  <img
-                    src={image.imageURL}
-                    alt={image.name}
-                    style={{ maxWidth: "100%", maxHeight: "100px" }}
-                  />
-                </div>
-              ))}
-              {images.length === 0 && <Typography>No images found</Typography>}
-            </Grid>
           </Paper>
         </Grid>
+        {loading && (
+          <Grid
+            container
+            direction="column"
+            alignItems="center"
+            justifyContent="center"
+          >
+            <Typography variant="h4">Uploaded Images</Typography>
+          </Grid>
+        )}
       </Grid>
+
+      <ToastContainer />
     </Container>
   );
 }
