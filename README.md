@@ -1,3 +1,5 @@
+## MERN Stack
+
 ## Database ENV File
 
 Rename .env-template to .env and add connection string from MongoDB
